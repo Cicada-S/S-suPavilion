@@ -14,23 +14,23 @@ function renamePopupHtml(): Plugin {
       // 查找popup的HTML文件
       const popupHtmlPath = path.join(options.dir || 'dist', 'src', 'popup', 'index.html')
       const targetPath = path.join(options.dir || 'dist', 'popup.html')
-      
+
       if (fs.existsSync(popupHtmlPath)) {
         // 读取HTML内容
         let htmlContent = fs.readFileSync(popupHtmlPath, 'utf-8')
-        
+
         // 修复资源路径：从相对路径改为正确的相对路径
         htmlContent = htmlContent.replace(/href="\.\.\/\.\.\/assets\//g, 'href="./assets/')
         htmlContent = htmlContent.replace(/src="\.\.\/\.\.\/assets\//g, 'src="./assets/')
         htmlContent = htmlContent.replace(/href="\/assets\//g, 'href="./assets/')
         htmlContent = htmlContent.replace(/src="\/assets\//g, 'src="./assets/')
-        
+
         // 写入到目标位置
         fs.writeFileSync(targetPath, htmlContent, 'utf-8')
-        
+
         // 删除原文件
         fs.unlinkSync(popupHtmlPath)
-        
+
         // 删除空的目录
         try {
           fs.rmdirSync(path.join(options.dir || 'dist', 'src', 'popup'))
@@ -76,18 +76,19 @@ export default defineConfig({
     rollupOptions: {
       input: {
         popup: resolve(__dirname, 'src/popup/index.html'),
+        sidebar: resolve(__dirname, 'src/sidebar/index.html'),
         content: resolve(__dirname, 'src/content/index.ts'),
         background: resolve(__dirname, 'src/background/index.ts')
       },
       output: {
-        entryFileNames: (chunkInfo) => {
+        entryFileNames: chunkInfo => {
           if (chunkInfo.name === 'content' || chunkInfo.name === 'background') {
             return '[name].js'
           }
           return 'assets/[name]-[hash].js'
         },
         chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: (assetInfo) => {
+        assetFileNames: assetInfo => {
           // HTML文件输出到根目录
           if (assetInfo.name && assetInfo.name.endsWith('.html')) {
             return '[name].html'
@@ -102,4 +103,3 @@ export default defineConfig({
     }
   }
 })
-

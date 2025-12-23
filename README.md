@@ -2,6 +2,17 @@
 
 一个功能强大的Chrome浏览器扩展，可以将网页小说内容转换为语音并自动播放，支持自动翻页、播放速度控制和实时高亮显示。
 
+## 技术栈
+
+- **Vue 3** - 渐进式JavaScript框架
+- **TypeScript** - 类型安全的JavaScript
+- **Vite** - 下一代前端构建工具
+- **Pinia** - Vue的状态管理库
+- **Sass** - CSS预处理器
+- **ESLint** - JavaScript/TypeScript代码检查工具
+- **Prettier** - 代码格式化工具
+- **Stylelint** - CSS代码检查工具
+
 ## 功能特性
 
 - ✅ **文本转语音**：使用Web Speech API将小说内容转换为语音
@@ -10,15 +21,58 @@
 - ✅ **实时高亮**：正在阅读的句子会高亮显示并自动滚动
 - ✅ **CSS选择器支持**：支持使用CSS选择器定位内容，兼容各种网站
 
+## 开发
+
+### 安装依赖
+
+```bash
+npm install
+```
+
+### 开发模式
+
+```bash
+npm run dev
+```
+
+开发模式会监听文件变化并自动构建。
+
+### 构建生产版本
+
+```bash
+npm run build
+```
+
+构建完成后，`dist` 目录就是可以加载到Chrome的扩展目录。
+
+### 代码检查
+
+```bash
+# ESLint检查并自动修复
+npm run lint
+
+# 样式代码检查
+npm run lint:style
+
+# 自动修复样式问题
+npm run lint:style:fix
+
+# Prettier格式化代码
+npm run format
+
+# 检查代码格式（不修改）
+npm run format:check
+```
+
 ## 安装方法
 
-1. 下载或克隆本项目到本地
+1. 运行 `npm run build` 构建扩展
 2. 打开Chrome浏览器，进入扩展管理页面：
    - 地址栏输入 `chrome://extensions/`
    - 或者：菜单 → 更多工具 → 扩展程序
 3. 开启"开发者模式"（右上角开关）
 4. 点击"加载已解压的扩展程序"
-5. 选择项目文件夹
+5. 选择 `dist` 文件夹
 6. 扩展安装完成！
 
 ## 使用方法
@@ -44,25 +98,35 @@
 6. 选择"复制" → "复制选择器"
 7. 将复制的选择器粘贴到扩展的输入框中
 
-## 文件结构
+## 项目结构
 
 ```
 c-suPavilion/
-├── manifest.json      # 扩展配置文件
-├── popup.html         # 扩展弹窗界面
-├── popup.css          # 弹窗样式
-├── popup.js           # 弹窗逻辑
-├── content.js         # 内容脚本（核心功能）
-├── content.css        # 内容脚本样式
-└── README.md          # 说明文档
+├── src/
+│   ├── popup/           # Popup界面（Vue3组件）
+│   │   ├── App.vue      # 主组件
+│   │   ├── main.ts       # 入口文件
+│   │   ├── index.html    # HTML模板
+│   │   └── styles/       # 样式文件（Sass）
+│   ├── content/          # Content Script（TypeScript）
+│   │   ├── index.ts      # 内容脚本
+│   │   └── content.css   # 内容样式
+│   ├── background/       # Background Script
+│   │   └── index.ts      # 后台脚本
+│   ├── stores/           # Pinia状态管理
+│   │   └── reader.ts     # 阅读器状态
+│   └── manifest.json     # 扩展配置
+├── public/               # 静态资源（图标等）
+│   └── icon.svg          # SVG图标源文件
+├── dist/                 # 构建输出（用于加载扩展）
+├── vite.config.ts        # Vite配置
+├── tsconfig.json         # TypeScript配置
+├── .eslintrc.cjs          # ESLint配置
+├── .prettierrc.json       # Prettier配置
+├── .prettierignore        # Prettier忽略文件
+├── .stylelintrc.json      # Stylelint配置
+└── package.json           # 项目配置
 ```
-
-## 技术实现
-
-- **Manifest V3**：使用最新的Chrome扩展API
-- **Web Speech API**：浏览器原生语音合成
-- **CSS选择器**：灵活定位页面元素
-- **Content Scripts**：在网页中注入脚本实现功能
 
 ## 注意事项
 
@@ -80,14 +144,3 @@ c-suPavilion/
 ## 许可证
 
 MIT License
-
-## 更新日志
-
-### v1.0.0
-- 初始版本发布
-- 实现基础文本转语音功能
-- 实现自动翻页功能
-- 实现播放速度控制
-- 实现实时高亮显示
-- 支持CSS选择器定位元素
-

@@ -1,0 +1,38 @@
+{
+  "name": "novel-voice-reader",
+  "version": "1.0.0",
+  "description": "小说语音阅读器 Chrome 扩展",
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "lint:style": "stylelint \"src/**/*.{vue,scss,css}\"",
+    "lint:style:fix": "stylelint \"src/**/*.{vue,scss,css}\" --fix",
+    "format": "prettier --write \"src/**/*.{js,ts,jsx,tsx,vue,json,css,scss,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,ts,jsx,tsx,vue,json,css,scss,md}\""
+  },
+  "dependencies": {
+    "pinia": "^2.1.7",
+    "vue": "^3.4.15"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.258",
+    "@types/node": "^20.11.5",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "@vitejs/plugin-vue": "^5.0.3",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-vue": "^9.20.1",
+    "prettier": "^3.2.4",
+    "sass": "^1.71.1",
+    "stylelint": "^16.1.0",
+    "stylelint-config-standard-scss": "^13.1.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.11",
+    "vite-plugin-static-copy": "^1.0.4"
+  }
+}
+

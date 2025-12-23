@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "小说语音阅读器",
+  "version": "1.0.0",
+  "description": "将网页小说内容转换为语音并自动播放，支持自动翻页和高亮显示",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ]
+}
+

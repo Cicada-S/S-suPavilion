@@ -1,0 +1,16 @@
+/* 小说阅读器高亮样式 */
+
+.novel-reader-highlight {
+  background-color: #ffeb3b !important;
+  padding: 2px 0 !important;
+  transition: background-color 0.3s ease !important;
+  border-radius: 2px !important;
+}
+
+/* 确保高亮元素可见 */
+.novel-reader-highlight {
+  display: inline !important;
+  position: relative !important;
+  z-index: 1000 !important;
+}
+

@@ -1,4 +1,7 @@
 import './content.css'
+import { createSidebar, destroySidebar } from './sidebar'
+import { extractAndSplitText } from './text'
+import { highlightCurrentSentence, removeHighlight } from './highlight'
 
 // 小说语音阅读器 Content Script
 
@@ -12,12 +15,6 @@ let nextButtonSelector = ''
 let currentSentenceIndex = 0
 let sentences: string[] = []
 let contentElement: Element | null = null
-let highlightElements: Element[] = []
-// 侧边栏相关（Vue 侧边栏 + 浮动按钮，通过 iframe 加载 src/sidebar/index.html）
-let sidebarContainer: HTMLDivElement | null = null
-let sidebarIframe: HTMLIFrameElement | null = null
-let sidebarToggleBtn: HTMLButtonElement | null = null
-let sidebarMinimized = false
 // 连续语音错误计数，用于避免死循环
 let consecutiveErrors = 0
 const MAX_CONSECUTIVE_ERRORS = 3
@@ -85,97 +82,6 @@ function restoreReadingIfNeeded(): void {
   })
 }
 
-// 创建侧边栏（加载 Vue 版阅读面板：src/sidebar/index.html）
-function createSidebar(): void {
-  if (sidebarContainer) return
-
-  // 容器
-  sidebarContainer = document.createElement('div')
-  sidebarContainer.style.position = 'fixed'
-  sidebarContainer.style.top = '0'
-  // 固定在右侧
-  sidebarContainer.style.right = '0'
-  sidebarContainer.style.width = '400px'
-  sidebarContainer.style.height = '100%'
-  sidebarContainer.style.zIndex = '2147483647'
-  sidebarContainer.style.boxShadow = '2px 0 8px rgba(0,0,0,0.15)'
-  sidebarContainer.style.backgroundColor = 'transparent'
-  sidebarContainer.style.display = 'flex'
-  sidebarContainer.style.flexDirection = 'column'
-  sidebarContainer.style.pointerEvents = 'none'
-
-  const panel = document.createElement('div')
-  panel.style.width = '100%'
-  panel.style.height = '100%'
-  panel.style.backgroundColor = '#ffffff'
-  panel.style.pointerEvents = 'auto'
-
-  sidebarIframe = document.createElement('iframe')
-  sidebarIframe.src = chrome.runtime.getURL('src/sidebar/index.html')
-  sidebarIframe.style.width = '100%'
-  sidebarIframe.style.height = '100%'
-  sidebarIframe.style.border = 'none'
-
-  panel.appendChild(sidebarIframe)
-  sidebarContainer.appendChild(panel)
-  document.body.appendChild(sidebarContainer)
-
-  // 浮动按钮
-  sidebarToggleBtn = document.createElement('button')
-  sidebarToggleBtn.textContent = '📚'
-  sidebarToggleBtn.title = '展开/收起阅读面板'
-  sidebarToggleBtn.style.position = 'fixed'
-  // 挂在右侧
-  sidebarToggleBtn.style.right = '8px'
-  sidebarToggleBtn.style.top = '50%'
-  sidebarToggleBtn.style.transform = 'translateY(-50%)'
-  sidebarToggleBtn.style.width = '32px'
-  sidebarToggleBtn.style.height = '32px'
-  sidebarToggleBtn.style.borderRadius = '16px'
-  sidebarToggleBtn.style.border = 'none'
-  sidebarToggleBtn.style.backgroundColor = '#667eea'
-  sidebarToggleBtn.style.color = '#fff'
-  sidebarToggleBtn.style.cursor = 'pointer'
-  sidebarToggleBtn.style.zIndex = '2147483647'
-  sidebarToggleBtn.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)'
-
-  sidebarToggleBtn.onclick = () => {
-    sidebarMinimized = !sidebarMinimized
-    updateSidebarVisibility()
-  }
-
-  document.body.appendChild(sidebarToggleBtn)
-  // 默认收起
-  sidebarMinimized = true
-  updateSidebarVisibility()
-}
-
-function updateSidebarVisibility(): void {
-  if (!sidebarContainer || !sidebarToggleBtn) return
-  if (sidebarMinimized) {
-    // 收起时，侧边栏滑出屏幕右侧，只保留按钮
-    sidebarContainer.style.transform = 'translateX(100%)'
-    sidebarToggleBtn.style.right = '8px'
-  } else {
-    // 展开时，面板贴右侧，按钮内移到面板左侧一点
-    sidebarContainer.style.transform = 'translateX(0)'
-    sidebarToggleBtn.style.right = '408px'
-  }
-}
-
-function destroySidebar(): void {
-  if (sidebarContainer && sidebarContainer.parentNode) {
-    sidebarContainer.parentNode.removeChild(sidebarContainer)
-  }
-  if (sidebarToggleBtn && sidebarToggleBtn.parentNode) {
-    sidebarToggleBtn.parentNode.removeChild(sidebarToggleBtn)
-  }
-  sidebarContainer = null
-  sidebarIframe = null
-  sidebarToggleBtn = null
-  sidebarMinimized = false
-}
-
 // 开始阅读
 function startReading(
   selector: string,
@@ -199,7 +105,7 @@ function startReading(
     }
 
     // 提取文本并分割成句子
-    extractAndSplitText()
+    sentences = extractAndSplitText(contentElement)
 
     if (sentences.length === 0) {
       sendStatus('❌ 未找到可阅读的内容')
@@ -225,57 +131,6 @@ function startReading(
   }
 }
 
-// 提取并分割文本
-function extractAndSplitText(): void {
-  if (!contentElement) return
-
-  // 克隆元素以避免修改原始DOM
-  const clone = contentElement.cloneNode(true) as Element
-
-  // 移除脚本和样式标签
-  const scripts = clone.querySelectorAll('script, style')
-  scripts.forEach(el => el.remove())
-
-  // 获取纯文本
-  let text = clone.textContent || (clone as HTMLElement).innerText || ''
-
-  // 清理文本：移除多余空白
-  text = text.replace(/\s+/g, ' ').trim()
-
-  // 按句号、问号、感叹号分割句子
-  sentences = text.split(/([。！？\n])/).filter(s => s.trim().length > 0)
-
-  // 合并标点符号到前一句
-  const mergedSentences: string[] = []
-  for (let i = 0; i < sentences.length; i++) {
-    if (sentences[i].match(/^[。！？\n]$/)) {
-      if (mergedSentences.length > 0) {
-        mergedSentences[mergedSentences.length - 1] += sentences[i]
-      }
-    } else {
-      mergedSentences.push(sentences[i].trim())
-    }
-  }
-
-  sentences = mergedSentences.filter(s => s.length > 0)
-
-  // 如果句子太少，按逗号分割
-  if (sentences.length < 3) {
-    const temp = text.split(/([，,])/).filter(s => s.trim().length > 0)
-    const merged: string[] = []
-    for (let i = 0; i < temp.length; i++) {
-      if (temp[i].match(/^[，,]$/)) {
-        if (merged.length > 0) {
-          merged[merged.length - 1] += temp[i]
-        }
-      } else {
-        merged.push(temp[i].trim())
-      }
-    }
-    sentences = merged.filter(s => s.length > 5)
-  }
-}
-
 // 播放下一句
 function playNextSentence(): void {
   if (!isPlaying || isPaused) return
@@ -291,7 +146,7 @@ function playNextSentence(): void {
   consecutiveErrors = 0
 
   // 高亮当前句子
-  highlightCurrentSentence(sentence)
+  highlightCurrentSentence(contentElement, sentence)
 
   // 创建语音合成
   if (currentUtterance) {
@@ -337,87 +192,6 @@ function playNextSentence(): void {
   }
 
   speechSynthesis.speak(currentUtterance)
-}
-
-// 高亮当前句子
-function highlightCurrentSentence(sentence: string): void {
-  removeHighlight()
-
-  if (!contentElement) return
-
-  // 使用更长的匹配前缀，提高匹配准确性
-  // 如果句子长度超过20，使用前20个字符；否则使用完整句子
-  const matchLength = Math.min(20, sentence.length)
-  const matchText = sentence.substring(0, matchLength).trim()
-
-  // 在原始元素中查找并高亮
-  const walker = document.createTreeWalker(contentElement, NodeFilter.SHOW_TEXT)
-
-  let node: Node | null
-  let found = false
-  while ((node = walker.nextNode()) && !found) {
-    const text = node.textContent || ''
-    // 使用更精确的匹配：查找完整句子或至少匹配较长的前缀
-    const searchText = matchLength >= 20 ? matchText : sentence.trim()
-    const index = text.indexOf(searchText)
-
-    if (index !== -1) {
-      // 找到包含该句子的文本节点
-      const parent = node.parentElement
-      if (parent) {
-        try {
-          const range = document.createRange()
-          // 尝试匹配完整句子
-          const fullSentenceIndex = text.indexOf(sentence.trim())
-          if (fullSentenceIndex !== -1) {
-            range.setStart(node, fullSentenceIndex)
-            range.setEnd(node, Math.min(fullSentenceIndex + sentence.length, text.length))
-          } else {
-            // 如果找不到完整句子，使用匹配的前缀
-            range.setStart(node, index)
-            range.setEnd(node, Math.min(index + searchText.length, text.length))
-          }
-
-          const highlight = document.createElement('mark')
-          highlight.className = 'novel-reader-highlight'
-          highlight.style.cssText =
-            'background-color: #ffeb3b; padding: 2px 0; transition: background-color 0.3s;'
-
-          range.surroundContents(highlight)
-          highlightElements.push(highlight)
-
-          // 滚动到高亮位置
-          highlight.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          found = true
-        } catch (e) {
-          // 如果无法精确高亮，高亮整个父元素
-          ;(parent as HTMLElement).style.backgroundColor = '#ffeb3b'
-          ;(parent as HTMLElement).style.transition = 'background-color 0.3s'
-          highlightElements.push(parent)
-          parent.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          found = true
-        }
-      }
-    }
-  }
-}
-
-// 移除高亮
-function removeHighlight(): void {
-  highlightElements.forEach(el => {
-    if (el.classList && el.classList.contains('novel-reader-highlight')) {
-      // 如果是mark标签，需要恢复文本
-      const parent = el.parentNode
-      if (parent) {
-        parent.replaceChild(document.createTextNode(el.textContent || ''), el)
-        parent.normalize()
-      }
-    } else {
-      // 如果是其他元素，移除背景色
-      ;(el as HTMLElement).style.backgroundColor = ''
-    }
-  })
-  highlightElements = []
 }
 
 // 自动翻页到下一章

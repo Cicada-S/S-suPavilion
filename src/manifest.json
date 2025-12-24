@@ -5,7 +5,7 @@
   "description": "将网页小说内容转换为语音并自动播放，支持自动翻页和高亮显示",
   "permissions": ["activeTab", "storage", "tabs"],
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "menu.html"
   },
   "content_scripts": [
     {
@@ -16,7 +16,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["popup.html", "src/sidebar/index.html", "assets/*"],
+      "resources": ["popup.html", "menu.html", "assets/*"],
       "matches": ["<all_urls>"]
     }
   ],

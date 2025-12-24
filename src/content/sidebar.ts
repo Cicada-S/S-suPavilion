@@ -1,4 +1,4 @@
-// 侧边栏相关（Vue 侧边栏 + 浮动按钮，通过 iframe 加载 src/sidebar/index.html）
+// 侧边栏相关（Vue 侧边栏 + 浮动按钮，通过 iframe 加载 sidebar.html）
 
 let sidebarContainer: HTMLDivElement | null = null
 let sidebarIframe: HTMLIFrameElement | null = null
@@ -30,7 +30,7 @@ export function createSidebar(): void {
   panel.style.pointerEvents = 'auto'
 
   sidebarIframe = document.createElement('iframe')
-  sidebarIframe.src = chrome.runtime.getURL('src/sidebar/index.html')
+  sidebarIframe.src = chrome.runtime.getURL('sidebar.html')
   sidebarIframe.style.width = '100%'
   sidebarIframe.style.height = '100%'
   sidebarIframe.style.border = 'none'

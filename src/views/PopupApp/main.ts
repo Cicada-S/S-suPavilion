@@ -1,7 +1,7 @@
 import { createApp, type App as VueApp } from 'vue'
 import { createPinia } from 'pinia'
-import App from '../popup/App.vue'
-import '../popup/styles/main.scss'
+import PopupApp from './index.vue'
+import '../../styles/popup.scss'
 
 let app: VueApp<Element> | null = null
 let container: HTMLDivElement | null = null
@@ -25,7 +25,7 @@ function mountSidebar() {
 
   document.body.appendChild(container)
 
-  app = createApp(App)
+  app = createApp(PopupApp)
   const pinia = createPinia()
   app.use(pinia)
   app.mount(container)

@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import MenuApp from './MenuApp.vue'
-import './styles/main.scss'
+import MenuApp from './index.vue'
+import '../../styles/menu.scss'
 
 const app = createApp(MenuApp)
 const pinia = createPinia()

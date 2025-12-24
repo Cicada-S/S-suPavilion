@@ -14,7 +14,7 @@
     </div>
 
     <div class="status" :class="{ active: enabled, inactive: !enabled }">
-      状态：{{ enabled ? '已启动（侧边栏常驻）' : '已关闭（销毁侧边栏）' }}
+      状态：{{ enabled ? '已启动' : '已关闭' }}
     </div>
   </div>
 </template>
@@ -54,7 +54,7 @@ const onToggle = () => {
 
 <style scoped lang="scss">
 .menu-app {
-  width: 260px;
+  width: 200px;
   padding: 16px;
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -81,13 +81,14 @@ const onToggle = () => {
 .row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  // justify-content: space-between;
   margin: 12px 0;
 }
 
 .label {
   font-size: 14px;
   color: #555;
+  margin-right: 10px;
 }
 
 .switch {

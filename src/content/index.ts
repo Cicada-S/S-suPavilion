@@ -1,7 +1,7 @@
 import './content.css'
 import { createSidebar, destroySidebar } from './sidebar'
-import { extractAndSplitText } from './text'
-import { highlightCurrentSentence, removeHighlight } from './highlight'
+import { extractAndSplitText } from '@/utils/textExtractor'
+import { highlightCurrentSentence, removeHighlight } from '@/utils/highlight'
 
 // 小说语音阅读器 Content Script
 
